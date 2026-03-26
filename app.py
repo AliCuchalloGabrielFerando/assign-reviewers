@@ -145,13 +145,16 @@ def handle_assign_reviewers(ack, command, respond):
 
 # --- Entry points -------------------------------------------------------------
 
-# AWS Lambda handler (only when deployed to Lambda)
-def handler(event, context):
-    from slack_bolt.adapter.aws_lambda import SlackRequestHandler
-    slack_handler = SlackRequestHandler(app=app)
-    return slack_handler.handle(event, context)
-
-
-# Local development
 if __name__ == "__main__":
-    app.start(host="0.0.0.0", port=int(os.environ.get("PORT", 3000)))
+    from flask import Flask, request
+    from slack_bolt.adapter.flask import SlackRequestHandler
+
+    flask_app = Flask(__name__)
+    flask_handler = SlackRequestHandler(app)
+
+    @flask_app.route("/slack/events", methods=["POST"])
+    def slack_events():
+        return flask_handler.handle(request)
+
+    port = int(os.environ.get("PORT", 3000))
+    flask_app.run(host="0.0.0.0", port=port)
