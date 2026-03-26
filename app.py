@@ -154,4 +154,4 @@ def handler(event, context):
 
 # Local development
 if __name__ == "__main__":
-    app.start(port=int(os.environ.get("PORT", 3000)))
+    app.start(host="0.0.0.0", port=int(os.environ.get("PORT", 3000)))
