@@ -1,0 +1,26 @@
+service: slack-pr-reviewer-bot
+
+provider:
+  name: aws
+  runtime: python3.12
+  region: us-east-1
+  environment:
+    SLACK_BOT_TOKEN: ${env:SLACK_BOT_TOKEN}
+    SLACK_SIGNING_SECRET: ${env:SLACK_SIGNING_SECRET}
+    GITHUB_TOKEN: ${env:GITHUB_TOKEN}
+
+functions:
+  slack:
+    handler: app.handler
+    events:
+      - httpApi:
+          path: /slack/events
+          method: post
+    timeout: 10
+
+plugins:
+  - serverless-python-requirements
+
+custom:
+  pythonRequirements:
+    slim: true
