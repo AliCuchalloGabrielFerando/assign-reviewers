@@ -2,7 +2,9 @@ import logging
 import os
 import re
 
+from flask import Flask, request as flask_request
 from slack_bolt import App
+from slack_bolt.adapter.flask import SlackRequestHandler
 
 from github_client import (
     GitHubClient,
@@ -15,12 +17,9 @@ logger = logging.getLogger(__name__)
 
 # --- Slack Bolt app -----------------------------------------------------------
 
-IS_LAMBDA = "AWS_LAMBDA_FUNCTION_NAME" in os.environ
-
 app = App(
     token=os.environ["SLACK_BOT_TOKEN"],
     signing_secret=os.environ["SLACK_SIGNING_SECRET"],
-    process_before_response=IS_LAMBDA,
 )
 
 github = GitHubClient(token=os.environ["GITHUB_TOKEN"])
@@ -143,18 +142,17 @@ def handle_assign_reviewers(ack, command, respond):
     )
 
 
-# --- Entry points -------------------------------------------------------------
+# --- Flask server -------------------------------------------------------------
+
+flask_app = Flask(__name__)
+flask_handler = SlackRequestHandler(app)
+
+
+@flask_app.route("/slack/events", methods=["POST"])
+def slack_events():
+    return flask_handler.handle(flask_request)
+
 
 if __name__ == "__main__":
-    from flask import Flask, request
-    from slack_bolt.adapter.flask import SlackRequestHandler
-
-    flask_app = Flask(__name__)
-    flask_handler = SlackRequestHandler(app)
-
-    @flask_app.route("/slack/events", methods=["POST"])
-    def slack_events():
-        return flask_handler.handle(request)
-
     port = int(os.environ.get("PORT", 3000))
     flask_app.run(host="0.0.0.0", port=port)

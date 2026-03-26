@@ -19,4 +19,4 @@ COPY . .
 
 EXPOSE 3000
 
-CMD ["python", "app.py"]
+CMD ["gunicorn", "--bind", "0.0.0.0:8080", "--workers", "1", "--threads", "4", "app:flask_app"]
